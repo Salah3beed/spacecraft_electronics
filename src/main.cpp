@@ -27,6 +27,7 @@ const uint8_t done[] = {
 
 MS5611 MS5611(0x77);
 const float SEA_PRESSURE = 1013.25;
+const float HEIGHT_REFERENCE = 421.3;
 
 void setup()
 {
@@ -79,9 +80,10 @@ void loop()
   MS5611.read(); //  note no error checking => "optimistic".
   float current_temprature = MS5611.getTemperature();
   float current_pressure = MS5611.getPressure();
-  float current_altitude_hypo = getAltitudeHypsometric(current_pressure, current_temprature);
-  float current_altitude_baro=   getAltitudeBarometric(current_pressure);
+  float current_altitude_hypo = getAltitudeHypsometric(current_pressure, current_temprature)-HEIGHT_REFERENCE;
+  float current_altitude_baro=   getAltitudeBarometric(current_pressure)-HEIGHT_REFERENCE;
   int altitude_output = getFirst4Digits(current_altitude_hypo);
+  
   // Just print out the raw values for debugging purposes
   Serial.print("T:\t");
   Serial.print(current_temprature, 3);
