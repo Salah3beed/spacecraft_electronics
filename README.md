@@ -17,14 +17,13 @@ In the "resources" directory, one can easily find all the info about the project
 There are two ways used in order to find the Altitude using the pressure and temprature readings from the device. 
 
 In either formula: 
+
 $$
 \begin{align}
-   P_0 =& \text{ reference pressure at sea level (1013.25hPa)} \\
-P =& \text{ measured pressure (Pa) from the sensor} \\
+P_{0}=& \text{reference pressure at sea level (1013.25hPa)}\\
+P=& \text{ measured pressure (Pa) from the sensor}\\
 h=& \text{altitude (m)}
- 
 \end{align}
-
 $$
 
 ### Hypsometric Formula
