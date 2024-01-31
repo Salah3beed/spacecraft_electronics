@@ -20,9 +20,9 @@ In either formula:
 
 $$
 \begin{align}
-P_{0}=& \text{reference pressure at sea level (1013.25hPa)}\\
+P_{0}=& \text{ reference pressure at sea level (1013.25hPa)}\\
 P=& \text{ measured pressure (Pa) from the sensor}\\
-h=& \text{altitude (m)}
+h=& \text{ altitude (m)}
 \end{align}
 $$
 
@@ -39,16 +39,28 @@ $$
 
 ## List of the Tests done to the Device
 
-### Altitude measurement at ground level
+### Accuracy Test
 
-### Altitude measurement at the first-floor level 
-> This test was done in comparison to the ground floor measurement
+Comparison of the barometer's readings with Sea level (or Bavaria Topology or Google Earth) or another reference barometer. Ensure that the readings are within an acceptable margin of error.
+### Sensitivity Test
 
-### Altitude measurement at roof Level
-> This test was done in comparison to the ground floor measurement
+Exposure of the barometer to different pressure levels (device in lab available?) and observing its result. Testing what pressure level differences and altitude differences can be sensed.
+### Temperature Compensation Test
 
-### Testing of our altimeter in motion to check how it accounts for wind with regard to pressure
+Placement of the barometer in environments with different temperatures (outside and inside the lab). Checking that the barometer compensates for temperature changes to maintain accurate altitude measurements.
+### Response Time Test
 
-### Testing of our altimeter under cold and warm conditions
+Changing the atmospheric pressure/altitude suddenly and measuring the time it takes for the barometer to stabilize and provide an accurate reading.
+### Altitude Simulation Test
 
-### Comparison of altitude difference with the Bosch Laser Measurement to check for accuracy
+Changing the altitude and execute an observation how well the barometer adjusts to the different pressure (different floors of the lab). Check if the result corresponds to the expected altitude, which we measure with the Bosch Laser measurement device.
+### Long-Term Stability Test
+
+Leaving the barometer in a stable environment for a certain time (2 minutes) and periodically checking its results. Thereby, we test if the barometer maintains stable results over time.
+### Power Supply Variation Test
+
+Varying the power supply voltage within the specified operating range (3.3V – 5V) and checking that the altimeter’s results remain accurate.
+Vibration and Shock Testing	Putting the altimeter on a vibrating surface and test if the altimeter can withstand mechanical stresses
+### Communication Interface Test
+
+Test the communication functionality of the I2C port to ensure reliable data exchange with the connected microcontroller.
