@@ -27,23 +27,30 @@ const uint8_t done[] = {
 
 MS5611 MS5611(0x77);
 const float SEA_PRESSURE = 1013.25;
- const float HEIGHT_REFERENCE = 0.0; //  measured outside at ground level=> 421.3
-
+const float HEIGHT_REFERENCE = 419.3; //  measured outside at ground level=> 421.3
+const int DELAY = 100;
+const int AVG_DELAY=40;
+const int AVG_SIZE=30;
+bool FOUND = false;
 void setup()
 {
   Serial.begin(115200);
   Wire.begin();
   if (MS5611.begin() == true)
   {
+    FOUND=true;
     Serial.println("MS5611 found.");
+
   }
   else
   {
+    FOUND=false;
     Serial.println("MS5611 not found. halt.");
     while (1)
       ;
   }
-  Serial.println();
+  MS5611.setOversampling(OSR_STANDARD);
+
 }
 
 float getAltitudeHypsometric(float press, float temp)
@@ -52,7 +59,7 @@ float getAltitudeHypsometric(float press, float temp)
 }
 
 float getAltitudeBarometric(float pressure) {
-return (44330 * (1 - pow((pressure/SEA_PRESSURE),(1/5.255)))) - HEIGHT_REFERENCE;
+return (44330.0f * (1.0f - pow((double)pressure / (double)SEA_PRESSURE, 0.1902949f)))- HEIGHT_REFERENCE;
 }
 
 int getFirst4Digits(float number)
@@ -72,6 +79,26 @@ int getFirst4Digits(float number)
   return atoi(buffer);
 }
 
+float getAltitude(float current_pressure){
+  return getAltitudeBarometric(current_pressure);
+}
+float getAltitude(float current_pressure, float current_temprature){
+  return getAltitudeHypsometric(current_pressure, current_temprature);
+}
+
+float getAverage(int size)
+{
+  float total=0;
+for (int i = 0; i < size; i++)
+  {
+    float current_temprature = MS5611.getTemperature();
+    float current_pressure = MS5611.getPressure();
+    total+=getAltitude(current_pressure);
+    delay(AVG_DELAY);
+  }
+  return total/size;
+}
+
 void loop()
 {
   // Set the brightness to 5 (0=dimmest 7=brightest)
@@ -80,8 +107,8 @@ void loop()
   MS5611.read(); //  note no error checking => "optimistic".
   float current_temprature = MS5611.getTemperature();
   float current_pressure = MS5611.getPressure();
-  float current_altitude_hypo = getAltitudeHypsometric(current_pressure, current_temprature)-HEIGHT_REFERENCE;
-  float current_altitude_baro=   getAltitudeBarometric(current_pressure)-HEIGHT_REFERENCE;
+  float current_altitude_hypo = getAltitudeHypsometric(current_pressure, current_temprature);
+  float current_altitude_baro=   getAltitudeBarometric(current_pressure);
   int altitude_output = getFirst4Digits(current_altitude_hypo);
 
   // Just print out the raw values for debugging purposes
@@ -94,7 +121,11 @@ void loop()
   Serial.println("Shown in the 4-Digit Disply is: "+ String(altitude_output));
   Serial.println(current_altitude_baro);
 
+  
+  altitude_output = getFirst4Digits(getAverage(AVG_SIZE));
+  Serial.println(altitude_output);
+
   // Prints altitude
   display.showNumberDecEx(altitude_output, 0b00100000, false, 4, 0);
-  delay(2000);
+  delay(DELAY);
 }
