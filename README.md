@@ -36,6 +36,10 @@ $$
 h=44330*(1-(P/P_0)^{\frac{1}{5.255}})
 $$
 
+## Report
+Can be found under ./resources
+## Manual
+Can be found under ./resources
 
 ## List of the Tests done to the Device
 
