@@ -6,6 +6,7 @@
 // Define the connections pins
 #define CLK 3
 #define DIO 4
+#define FILTER_SIZE 10 // The size of the moving average filter
 
 // Create a display object of type TM1637Display
 TM1637Display display = TM1637Display(CLK, DIO);
@@ -53,13 +54,37 @@ void setup()
 
 }
 
-float getAltitudeHypsometric(float press, float temp)
+float movingAverageFilter(float rawValue) {
+    static float buffer[FILTER_SIZE];
+    static int index = 0;
+    float sum = 0;
+
+    // Update the buffer with the latest raw value
+    buffer[index] = rawValue;
+
+    // Calculate the sum of the values in the buffer
+    for (int i = 0; i < FILTER_SIZE; i++) {
+        sum += buffer[i];
+    }
+
+    // Move to the next position in the buffer
+    index = (index + 1) % FILTER_SIZE;
+
+    // Return the filtered value
+    return sum / FILTER_SIZE;
+}
+
+float getAltitudeHypsometric(float pressure, float temprature)
 {
-  return (((pow((SEA_PRESSURE / press), 1 / 5.257) - 1.0) * (temp + 273.15)) / 0.0065) - HEIGHT_REFERENCE;
+  return (((pow((SEA_PRESSURE / pressure), 1 / 5.257) - 1.0) * (temprature + 273.15)) / 0.0065) - HEIGHT_REFERENCE;
 }
 
 float getAltitudeBarometric(float pressure) {
 return (44330.0f * (1.0f - pow((double)pressure / (double)SEA_PRESSURE, 0.1902949f)))- HEIGHT_REFERENCE;
+}
+
+float getAltitudeBarometricFiltered(float pressure) {
+    return getAltitudeBarometric(movingAverageFilter(pressure));
 }
 
 int getFirst4Digits(float number)
@@ -80,7 +105,8 @@ int getFirst4Digits(float number)
 }
 
 float getAltitude(float current_pressure){
-  return getAltitudeBarometric(current_pressure);
+  // return getAltitudeBarometric(current_pressure);
+  return getAltitudeBarometricFiltered(current_pressure);
 }
 float getAltitude(float current_pressure, float current_temprature){
   return getAltitudeHypsometric(current_pressure, current_temprature);
