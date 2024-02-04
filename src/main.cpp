@@ -33,6 +33,14 @@ const int DELAY = 100;
 const int AVG_DELAY=40;
 const int AVG_SIZE=30;
 bool FOUND = false;
+
+// Kalman filter variables
+float x_hat;         // Estimated state
+float P;             // Estimated error covariance
+float Q;             // Process noise covariance
+float R;             // Measurement noise covariance
+float K;             // Kalman gain
+
 void setup()
 {
   Serial.begin(115200);
@@ -53,6 +61,28 @@ void setup()
   MS5611.setOversampling(OSR_STANDARD);
 
 }
+
+// Initialize Kalman filter parameters
+void kalmanFilterInit(float initialPressure, float initialError) {
+    x_hat = initialPressure;  // Initial estimate
+    P = initialError;         // Initial error covariance
+    Q = 0.001;                // Process noise covariance (adjust as needed)
+    R = 0.1;                  // Measurement noise covariance (adjust as needed)
+}
+
+// Update Kalman filter with new pressure measurement
+float kalmanFilterUpdate(float pressureMeasurement) {
+    // Prediction step
+    x_hat = x_hat;  // In a more complex scenario, you would predict the next state based on system dynamics
+
+    // Update step
+    K = P / (P + R);  // Kalman gain
+    x_hat = x_hat + K * (pressureMeasurement - x_hat);  // Update estimate
+    P = (1 - K) * P;  // Update error covariance
+
+    return x_hat;
+}
+
 
 float movingAverageFilter(float rawValue) {
     static float buffer[FILTER_SIZE];
@@ -86,6 +116,9 @@ return (44330.0f * (1.0f - pow((double)pressure / (double)SEA_PRESSURE, 0.190294
 float getAltitudeBarometricFiltered(float pressure) {
     return getAltitudeBarometric(movingAverageFilter(pressure));
 }
+float getAltitudeHypsometricFiltered(float pressure, float temprature) {
+    return getAltitudeHypsometric(movingAverageFilter(pressure), temprature);
+}
 
 int getFirst4Digits(float number)
 {
@@ -109,7 +142,8 @@ float getAltitude(float current_pressure){
   return getAltitudeBarometricFiltered(current_pressure);
 }
 float getAltitude(float current_pressure, float current_temprature){
-  return getAltitudeHypsometric(current_pressure, current_temprature);
+  // return getAltitudeHypsometric(current_pressure, current_temprature);
+  return getAltitudeHypsometricFiltered(current_pressure, current_temprature);
 }
 
 float getAverage(int size)
@@ -133,9 +167,11 @@ void loop()
   MS5611.read(); //  note no error checking => "optimistic".
   float current_temprature = MS5611.getTemperature();
   float current_pressure = MS5611.getPressure();
-  float current_altitude_hypo = getAltitudeHypsometric(current_pressure, current_temprature);
-  float current_altitude_baro=   getAltitudeBarometric(current_pressure);
-  int altitude_output = getFirst4Digits(current_altitude_hypo);
+  float another_pressure = MS5611.getPressure();
+  kalmanFilterInit(current_pressure, current_pressure-another_pressure);  // Initialize Kalman filter
+  float current_altitude_hypo = getAltitude(current_pressure, current_temprature);
+  float current_altitude_baro=   getAltitude(current_pressure);
+  int altitude_output = getFirst4Digits(current_altitude_baro);
 
   // Just print out the raw values for debugging purposes
   Serial.print("T:\t");
@@ -143,11 +179,14 @@ void loop()
   Serial.print("\tP:\t");
   Serial.print(current_pressure, 3);
   Serial.println();
-  Serial.println(current_altitude_hypo);
-  Serial.println("Shown in the 4-Digit Disply is: "+ String(altitude_output));
-  Serial.println(current_altitude_baro);
+  // Serial.println("Shown in the 4-Digit Disply is: "+ String(altitude_output));
+  Serial.println("Barometric Altitude Filtered: "+ String(current_altitude_baro));
+  Serial.println("Hypsometric Altitude Filtered: "+ String(current_altitude_hypo));
 
-  
+
+  float kalman_pressure = kalmanFilterUpdate(current_pressure);
+  Serial.println("Kalman Filtered Altitude: "+String(getAltitude(kalman_pressure)));
+
   altitude_output = getFirst4Digits(getAverage(AVG_SIZE));
   Serial.println(altitude_output);
 
