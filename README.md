@@ -6,8 +6,9 @@ In the "resources" directory, one can easily find all the info about the project
 2. Gantt Chart
 3. Block Functional Diagram
 4. Schematics 
-5. User Manual
-6. Project Report
+5. I2C Testing using Digital Analyzer
+6. User Manual
+7. Project Report
 
 ## Block Diagram of the Project
 ![Alt text](resources/images/block.png)
@@ -68,3 +69,6 @@ Vibration and Shock Testing	Putting the altimeter on a vibrating surface and tes
 ### Communication Interface Test
 
 Test the communication functionality of the I2C port to ensure reliable data exchange with the connected microcontroller.
+
+![Alt text](resources/images/digital_analyzer/0%20Reset%20Sequence.png)
+![Alt text](resources/images/digital_analyzer/A2A4A6.png)
