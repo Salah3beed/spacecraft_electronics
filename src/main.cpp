@@ -3,22 +3,13 @@
 #include <TM1637Display.h>
 #include <MS5611.h>
 
-// Define the connections pins
+// Define the connections pins, sizes
 #define CLK 4
 #define DIO 3
-#define FILTER_SIZE 100 // The size of the moving average filter
 #define BUTTON_PIN 21
+#define FILTER_SIZE 100 // The size of the moving average filter
 
-// Create a display object of type TM1637Display
-TM1637Display display = TM1637Display(CLK, DIO);
-
-// Create an array that turns all segments ON
-const uint8_t allON[] = {0xff, 0xff, 0xff, 0xff};
-
-// Create an array that turns all segments OFF
-const uint8_t allOFF[] = {0x00, 0x00, 0x00, 0x00};
-
-MS5611 MS5611(0x77);
+// Constants
 const float SEA_PRESSURE = 1013.25;
 volatile float HEIGHT_REFERENCE = 0; //  measured outside at ground level=> 421.3
 const int DELAY = 100;
@@ -34,6 +25,18 @@ float P;     // Estimated error covariance
 float Q;     // Process noise covariance
 float R;     // Measurement noise covariance
 float K;     // Kalman gain
+
+// Create a display object of type TM1637Display
+TM1637Display display = TM1637Display(CLK, DIO);
+
+// Create an array that turns all segments ON
+const uint8_t allON[] = {0xff, 0xff, 0xff, 0xff};
+
+// Create an array that turns all segments OFF
+const uint8_t allOFF[] = {0x00, 0x00, 0x00, 0x00};
+
+// Create an object of type MS5611
+MS5611 MS5611(0x77);
 
 // Interrupt service routine for the button
 void buttonISR()
@@ -60,6 +63,8 @@ void setup()
     while (1)
       ;
   }
+
+  // Setting the samplling rate and the pressure offset
   MS5611.setOversampling(OSR_HIGH);
   MS5611.setPressureOffset(-7.3);
 }
@@ -184,13 +189,13 @@ void loop()
   float current_temprature = MS5611.getTemperature();
   float current_pressure = MS5611.getPressure();
   float another_pressure = MS5611.getPressure();
-  float current_altitude_hypo = getAltitude(current_pressure, current_temprature);
+  // float current_altitude_hypo = getAltitude(current_pressure, current_temprature); // This line is commented out because it is not used in actual usage of the Altimeter atm. 
   float current_altitude_baro = getAltitude(current_pressure);
   int altitude_output = getFirst4Digits(current_altitude_baro);
-  
+
   // Initialize the Kalman filter with the current pressure and an initial error
-  kalmanFilterInit(current_pressure, current_pressure - another_pressure); 
-  
+  kalmanFilterInit(current_pressure, current_pressure - another_pressure);
+
   // Just print out the raw values for debugging purposes
   // Serial.print("T:\t");
   // Serial.print(current_temprature, 3);
@@ -201,9 +206,11 @@ void loop()
   // Serial.println("Barometric Altitude Filtered: "+ String(current_altitude_baro));
   // Serial.println("Hypsometric Altitude Filtered: "+ String(current_altitude_hypo));
 
+  // Update the Kalman filter with the current pressure measurement
   float kalman_pressure = kalmanFilterUpdate(current_pressure);
   float current_altitude_kalman = getAltitude(kalman_pressure);
   float current_height = getCurrentHeight(current_altitude_kalman);
+  
   // Serial.println("Kalman Filtered Altitude: "+String(current_altitude_kalman));
 
   altitude_output = getFirst4Digits(current_height);
