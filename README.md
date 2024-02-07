@@ -62,6 +62,16 @@ Can be found under ./resources
 ## Manual
 Can be found under ./resources
 
+## Interfacing with the Modules:
+
+## MS5611 
+
+Interfacing was done using I2C. All information about it can be found in the datasheet. 
+
+### Seven Segment Display (TM1637)
+The TM1637 is a Chinese made IC designed to drive up to 6 7-segment LEDs. It offers serial data input so that only 4 wires are need to connect to the display: POWER, GND, CLOCK and DATA. In fact it can also scan a keyboard matrix and return the key status to the controller. It can be found on integrated 4 digit displays available on eBay from Chinese sellers for a dollar or two. It follows on from the trend by MAXIM display chips serving similar functions. It's an attractive component if your microcontroller project needs a display and you don't want to use up lots of lines, drivers and resistors driving LED digits yourself, not to mention the coding of the multiplexing. A display board incorporating this controller costs only a little more than the displays on it.
+
+
 ## List of the Tests done to the Device
 
 ### Accuracy Test
@@ -92,3 +102,12 @@ Test the communication functionality of the I2C port to ensure reliable data exc
 
 ![Alt text](resources/images/digital_analyzer/0%20Reset%20Sequence.png)
 ![Alt text](resources/images/digital_analyzer/A2A4A6.png)
+
+## Resources and further reading:
+
+- https://green-possum-today.blogspot.com/2018/10/a-comparison-of-tm1637-protocol-with.html
+- https://www.kalmanfilter.net/kalman1d.html 
+- https://en.wikipedia.org/wiki/Hypsometric_equation 
+- https://en.wikipedia.org/wiki/Barometric_formula 
+- https://www.saleae.com/downloads/ 
+- https://www.te.com/commerce/DocumentDelivery/DDEController?Action=showdoc&DocId=Data+Sheet%7FMS5611-01BA03%7FB3%7Fpdf%7FEnglish%7FENG_DS_MS5611-01BA03_B3.pdf%7FCAT-BLPS0036
