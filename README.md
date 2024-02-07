@@ -37,6 +37,26 @@ $$
 h=44330*(1-(P/P_0)^{\frac{1}{5.255}})
 $$
 
+### Accuracy and Precision  
+In order to reduce the noise and stabilize the measured values from the sensor, we applied a digital filter. 
+
+Digital filtering is a technique used to process and smooth out noisy sensor data in order to obtain a more stable and accurate signal. There are different types of digital filters, and the choice depends on the specific requirements of the application.  
+
+## Moving Average Filter: 
+
+- A moving average filter calculates the average of a set of recent data points to smooth out fluctuations in the signal. 
+- The formula for a simple moving average is: 
+$$ \text{Pressure}(n)=\frac{1}{N} \sum_{i=0}^{N-1}\text{Pressure}(n-i) $$ 
+- N is the number of data points to include in the average. 
+
+We then use the filtered pressure value to calculate the altitude, and to add an additional layer of filtering and smoothing out the altitude curve we used a Kalman filter for the altitude values.  
+
+## Kalman Filter 
+
+A Kalman filter is an advanced and versatile digital filtering technique that can be used for sensor fusion and state estimation. It is particularly effective in situations where there is both measurement noise and process noise. It is a recursive estimator. This means that only the estimated state from the previous time step and the current measurement are needed to compute the estimate for the current state. 
+![Alt text](/resources/images/kalman1.png)
+![Alt text](/resources/images/kalman2.png)
+Image Ref: https://www.kalmanfilter.net/kalman1d.html
 ## Report
 Can be found under ./resources
 ## Manual
