@@ -59,6 +59,8 @@ A Kalman filter is an advanced and versatile digital filtering technique that ca
 Image Ref: https://www.kalmanfilter.net/kalman1d.html
 ## Report
 Can be found under ./resources
+## Final Presentation
+Can be found under ./resources
 ## Manual
 Can be found under ./resources
 
