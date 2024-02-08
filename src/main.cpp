@@ -63,17 +63,17 @@ void setup()
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);                                      // Set the button pin as input with internal pull-up resistor
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonISR, FALLING); // Attach interrupt to the button pin
-  // Serial.begin(115200);
+  Serial.begin(115200);
   Wire.begin();
   if (MS5611.begin() == true)
   {
     FOUND = true;
-    // Serial.println("MS5611 found.");
+    Serial.println("MS5611 found.");
   }
   else
   {
     FOUND = false;
-    // Serial.println("MS5611 not found. halt.");
+    Serial.println("MS5611 not found. halt.");
     while (1)
       ;
   }
@@ -207,29 +207,26 @@ void loop()
   int altitude_output = getFirst4Digits(current_altitude_baro);
 
   // Just print out the raw values for debugging purposes
-  // Serial.print("T:\t");
-  // Serial.print(current_temprature, 3);
-  // Serial.print("\tP:\t");
-  // Serial.print(current_pressure, 3);
-  // Serial.println();
-  // Serial.println("Shown in the 4-Digit Disply is: "+ String(altitude_output));
-  // Serial.println("Barometric Altitude Filtered: "+ String(current_altitude_baro));
-  // Serial.println("Hypsometric Altitude Filtered: "+ String(current_altitude_hypo));
+  Serial.print("T:\t");
+  Serial.print(current_temprature, 3);
+  Serial.print("\tP:\t");
+  Serial.print(current_pressure, 3);
+  Serial.println();
+  Serial.println("Shown in the 4-Digit Disply is: "+ String(altitude_output));
+  Serial.println("Barometric Altitude Filtered: "+ String(current_altitude_baro));
+  Serial.println("Hypsometric Altitude Filtered: "+ String(current_altitude_hypo));
 
   // Update the Kalman filter with the current pressure measurement
   float kalman_pressure = kalmanFilterUpdate(current_pressure);
   float current_altitude_kalman = getAltitude(kalman_pressure);
   float current_height = getCurrentHeight(current_altitude_kalman);
   
-  // Serial.println("Kalman Filtered Altitude: "+String(current_altitude_kalman));
+  Serial.println("Kalman Filtered Altitude: "+String(current_altitude_kalman));
 
   altitude_output = getFirst4Digits(current_height);
 
   // Prints altitude on the 4-digit display
   display.showNumberDecEx(altitude_output, 0b00100000, false, 4, 0);
-
-  // Delay for a while before updating the display again
-  // delay(DELAY);
 
   // Check if the button is pressed
   if (buttonPressed)
