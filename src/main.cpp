@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <TM1637Display.h>
 #include <MS5611.h>
+#include "RunningAverage.h"
 
 // Define the connections pins, sizes
 #define CLK 4
@@ -11,11 +12,12 @@
 
 // Constants
 const float SEA_PRESSURE = 1013.25;
-volatile float HEIGHT_REFERENCE = 0; //  measured outside at ground level=> 421.3
-const int DELAY = 100;
-const int DEBOUNCE_DELAY = 250; // Debouncing delay
+volatile float HEIGHT_REFERENCE = 0; 
+const int DELAY = 10;
+const int DEBOUNCE_DELAY = 200; // Debouncing delay
 const int AVG_DELAY = 40;
 const int AVG_SIZE = 30;
+const float PRESSURE_OFFSET = 25.2; // Pressure offset for the sensor, Has to be adjusted for the sensor every now and then
 bool FOUND = false;
 volatile bool buttonPressed = false; // Flag to indicate button press
 
@@ -25,6 +27,9 @@ float P;     // Estimated error covariance
 float Q;     // Process noise covariance
 float R;     // Measurement noise covariance
 float K;     // Kalman gain
+
+// Another way to create a running average object
+RunningAverage myRA(50);
 
 // Create a display object of type TM1637Display
 TM1637Display display = TM1637Display(CLK, DIO);
@@ -42,6 +47,15 @@ MS5611 MS5611(0x77);
 void buttonISR()
 {
   buttonPressed = true;
+}
+
+// Initialize Kalman filter parameters
+void kalmanFilterInit(float initialPressure, float initialError)
+{
+  x_hat = initialPressure; // Initial estimate
+  P = initialError;        // Initial error covariance
+  Q = 0.00001;              // Process noise covariance (adjust as needed)
+  R = 0.432;               // Measurement noise covariance (adjust as needed)
 }
 
 void setup()
@@ -63,20 +77,14 @@ void setup()
     while (1)
       ;
   }
+  MS5611.read(); // Read the sensor
+  float current_pressure = MS5611.getPressure();
 
-  // Setting the samplling rate and the pressure offset
-  MS5611.setOversampling(OSR_HIGH);
-  MS5611.setPressureOffset(-7.3);
+    // Initialize the Kalman filter with the current pressure and an initial error
+  kalmanFilterInit(current_pressure, 1.1);
+
 }
 
-// Initialize Kalman filter parameters
-void kalmanFilterInit(float initialPressure, float initialError)
-{
-  x_hat = initialPressure; // Initial estimate
-  P = initialError;        // Initial error covariance
-  Q = 0.0001;              // Process noise covariance (adjust as needed)
-  R = 0.332;               // Measurement noise covariance (adjust as needed)
-}
 
 // Update Kalman filter with new pressure measurement
 float kalmanFilterUpdate(float pressureMeasurement)
@@ -126,7 +134,9 @@ float getAltitudeBarometric(float pressure)
 
 float getAltitudeBarometricFiltered(float pressure)
 {
-  return getAltitudeBarometric(movingAverageFilter(pressure));
+  // return getAltitudeBarometric(movingAverageFilter(pressure));
+  myRA.addValue(pressure);
+  return getAltitudeBarometric(myRA.getAverage());
 }
 float getAltitudeHypsometricFiltered(float pressure, float temprature)
 {
@@ -181,20 +191,20 @@ float getCurrentHeight(float Altitude)
 void loop()
 {
   // Set the brightness to 5 (0=dimmest 7=brightest)
-  display.setBrightness(5);
-
+  display.setBrightness(7);
+  // Setting the samplling rate and the pressure offset
+  MS5611.reset(1);
+  MS5611.setOversampling(OSR_ULTRA_HIGH);
+  MS5611.setPressureOffset(PRESSURE_OFFSET);
   MS5611.read(); // Read the sensor
 
   // Getting Values from the Sensor
   float current_temprature = MS5611.getTemperature();
   float current_pressure = MS5611.getPressure();
   float another_pressure = MS5611.getPressure();
-  // float current_altitude_hypo = getAltitude(current_pressure, current_temprature); // This line is commented out because it is not used in actual usage of the Altimeter atm. 
+  float current_altitude_hypo = getAltitude(current_pressure, current_temprature); // This line is commented out because it is not used in actual usage of the Altimeter atm. 
   float current_altitude_baro = getAltitude(current_pressure);
   int altitude_output = getFirst4Digits(current_altitude_baro);
-
-  // Initialize the Kalman filter with the current pressure and an initial error
-  kalmanFilterInit(current_pressure, current_pressure - another_pressure);
 
   // Just print out the raw values for debugging purposes
   // Serial.print("T:\t");
